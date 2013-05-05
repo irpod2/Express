@@ -40,9 +40,17 @@ public class SpriteFactory extends ContentFactory
 
 	public static Ship createShip()
 	{
-		Ship ship = Ship.createShip(cameraWidth / 2, cameraHeight / 2,
-				shipRegion, activity.getVertexBufferObjectManager(),
-				physicsWorld);
+		Ship ship = new Ship((cameraWidth - shipRegion.getWidth()) / 2,
+				(cameraHeight - shipRegion.getHeight()) / 2, shipRegion,
+				activity.getVertexBufferObjectManager());
+		ship.setScale(0.25f, 0.25f);
+		FixtureDef shipFixtureDef = PhysicsFactory.createFixtureDef(20.0f,
+				1.0f, 0.2f);
+		Body shipBody = PhysicsFactory.createBoxBody(physicsWorld, ship,
+				BodyType.DynamicBody, shipFixtureDef);
+		ship.setShipBody(shipBody);
+		ship.setPhysicsConnector(new PhysicsConnector(ship, shipBody));
+		physicsWorld.registerPhysicsConnector(ship.getPhysicsConnector());
 		return ship;
 	}
 

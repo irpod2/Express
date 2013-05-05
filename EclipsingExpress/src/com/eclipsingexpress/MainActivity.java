@@ -1,11 +1,15 @@
 
 package com.eclipsingexpress;
 
+import org.andengine.engine.Engine;
+import org.andengine.engine.FixedStepEngine;
 import org.andengine.engine.camera.Camera;
+import org.andengine.engine.camera.SmoothCamera;
 import org.andengine.engine.options.EngineOptions;
 import org.andengine.engine.options.ScreenOrientation;
 import org.andengine.engine.options.resolutionpolicy.RatioResolutionPolicy;
 import org.andengine.entity.scene.Scene;
+import org.andengine.extension.physics.box2d.util.constants.PhysicsConstants;
 import org.andengine.input.sensor.acceleration.IAccelerationListener;
 import org.andengine.ui.activity.BaseGameActivity;
 
@@ -17,18 +21,21 @@ import android.view.WindowManager;
 
 import com.eclipsingexpress.scenario.GameplayScenario;
 import com.eclipsingexpress.scenario.IScenario;
+import com.eclipsingexpress.util.PseudoPhysicsTracker;
 import com.eclipsingexpress.util.content.ContentFactory;
+import com.eclipsingexpress.util.smartscene.SmartScene;
 
 public class MainActivity extends BaseGameActivity
 {
-	public final int DEFAULT_CAMERA_WIDTH = 800;
-	public final int DEFAULT_CAMERA_HEIGHT = 480;
+	public static final int STEPS_PER_SECOND = 90;
+	public static final int DEFAULT_CAMERA_WIDTH = 800;
+	public static final int DEFAULT_CAMERA_HEIGHT = 480;
 	public int cameraWidth = DEFAULT_CAMERA_WIDTH;
 	public int cameraHeight = DEFAULT_CAMERA_HEIGHT;
 	private IScenario currentScenario;
 	// private IScenario nextScenario;
 	private IAccelerationListener accelListener;
-	private Scene gameScene;
+	private SmartScene gameScene;
 	private Camera camera;
 
 	@Override
@@ -40,10 +47,12 @@ public class MainActivity extends BaseGameActivity
 		return true;
 	}
 
-	/*
-	 * @Override public Engine onCreateEngine(final EngineOptions
-	 * pEngineOptions) { return new FixedStepEngine(pEngineOptions, 30); }
-	 */
+
+	@Override
+	public Engine onCreateEngine(final EngineOptions pEngineOptions)
+	{
+		return new FixedStepEngine(pEngineOptions, STEPS_PER_SECOND);
+	}
 
 	@SuppressLint("NewApi")
 	@SuppressWarnings("deprecation")
@@ -76,7 +85,11 @@ public class MainActivity extends BaseGameActivity
 		}
 
 		// Initialize the camera
-		camera = new Camera(0, 0, cameraWidth, cameraHeight);
+		camera = new SmoothCamera(0, 0, cameraWidth, cameraHeight,
+				PseudoPhysicsTracker.MAX_SPEED
+						* PhysicsConstants.PIXEL_TO_METER_RATIO_DEFAULT,
+				PseudoPhysicsTracker.MAX_SPEED
+						* PhysicsConstants.PIXEL_TO_METER_RATIO_DEFAULT, 0.01f);
 
 		// Create the engine options
 		return new EngineOptions(true, ScreenOrientation.LANDSCAPE_FIXED,
@@ -100,7 +113,7 @@ public class MainActivity extends BaseGameActivity
 	public void onCreateScene(OnCreateSceneCallback pOnCreateSceneCallback)
 			throws Exception
 	{
-		gameScene = new Scene();
+		gameScene = new SmartScene(true);
 
 		pOnCreateSceneCallback.onCreateSceneFinished(gameScene);
 	}
